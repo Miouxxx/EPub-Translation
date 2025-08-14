@@ -7,11 +7,13 @@ import os
 import shutil
 import requests
 
-DELAY = 0.7  # délai entre traductions
+DELAY = 0.7  
 TEMP_DIR = "temp_chapitres"
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-DEEPL_API_KEY = "7d0ebf6f-1cb2-40db-8522-4adbe6aa46e3:fx"  # <-- Mets ta clé ici
+DEEPL_API_KEY = os.environ.get("DEEPL_API_KEY")
+if not DEEPL_API_KEY:
+    raise ValueError("La clé API DeepL n'est pas définie dans les variables d'environnement (DEEPL_API_KEY)")
 
 def translate_text(text):
     try:
@@ -30,7 +32,7 @@ def translate_text(text):
         return translated
     except Exception as e:
         tqdm.write(f"Erreur traduction: {e}")
-        raise  # <-- Ajoute ceci pour arrêter le script dès la première erreur
+        raise 
 
 def translate_soup(soup):
     for element in soup.find_all(text=True):
@@ -47,7 +49,7 @@ def translate_epub(input_path, output_path):
     book = epub.read_epub(input_path)
     new_book = epub.EpubBook()
 
-    # Métadonnées
+   
     title = book.get_metadata('DC', 'title')[0][0] if book.get_metadata('DC', 'title') else "Titre inconnu"
     meta_authors = book.get_metadata('DC', 'creator')
     authors = [a[0] for a in meta_authors] if meta_authors else []
@@ -108,11 +110,11 @@ def translate_epub(input_path, output_path):
     new_book.spine = ['nav'] + new_doc_items
 
     epub.write_epub(output_path, new_book)
-    tqdm.write(f"\n✅ EPUB traduit sauvegardé : {output_path}")
+    tqdm.write(f"\n✅ EPUB Translation save : {output_path}")
 
     shutil.rmtree(TEMP_DIR)
 
 if __name__ == "__main__":
-    input_file = "Clown_LotM_Vol1.epub"  # Mets ton fichier ici
-    output_file = "Clown_LotM_Vol1_FR.epub"
+    input_file = "your_input_file.epub"      # Path to the file to translate
+    output_file = "your_output_file.epub"    # Path for the translated file
     translate_epub(input_file, output_file)
